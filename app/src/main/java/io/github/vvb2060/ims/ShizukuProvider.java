@@ -3,8 +3,6 @@ package io.github.vvb2060.ims;
 import static io.github.vvb2060.ims.PrivilegedProcess.TAG;
 
 import android.app.ActivityManager;
-import android.app.IActivityManager;
-import android.app.UiAutomationConnection;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -13,7 +11,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Process;
-import android.os.ServiceManager;
 import android.system.Os;
 import android.util.Log;
 
@@ -31,7 +28,12 @@ public class ShizukuProvider extends rikka.shizuku.ShizukuProvider {
 
     @Override
     public Bundle call(String method, String arg, Bundle extras) {
-        var sdkUid = Process.toSdkSandboxUid(Os.getuid());
+        int sdkUid;
+        try {
+            sdkUid = (Integer) Process.class.getMethod("toSdkSandboxUid", int.class).invoke(null, Os.getuid());
+        } catch (Exception e) {
+            sdkUid = Os.getuid();
+        }
         var callingUid = Binder.getCallingUid();
         if (callingUid != sdkUid && callingUid != Process.SHELL_UID) {
             return new Bundle();
@@ -57,13 +59,16 @@ public class ShizukuProvider extends rikka.shizuku.ShizukuProvider {
 
     private static void startShellPermissionDelegate(IBinder binder, int sdkUid) {
         try {
-            var activity = ServiceManager.getService(Context.ACTIVITY_SERVICE);
-            var am = IActivityManager.Stub.asInterface(new ShizukuBinderWrapper(activity));
-            am.startDelegateShellPermissionIdentity(sdkUid, null);
+            var serviceManager = Class.forName("android.os.ServiceManager");
+            var activity = serviceManager.getMethod("getService", String.class).invoke(null, Context.ACTIVITY_SERVICE);
+            var iActivityManager = Class.forName("android.app.IActivityManager");
+            var stubClass = Class.forName("android.app.IActivityManager$Stub");
+            var am = stubClass.getMethod("asInterface", IBinder.class).invoke(null, new ShizukuBinderWrapper((IBinder) activity));
+            am.getClass().getMethod("startDelegateShellPermissionIdentity", int.class, String.class).invoke(am, sdkUid, null);
             var data = Parcel.obtain();
             binder.transact(1, data, null, 0);
             data.recycle();
-            am.stopDelegateShellPermissionIdentity();
+            am.getClass().getMethod("stopDelegateShellPermissionIdentity").invoke(am);
         } catch (Exception e) {
             Log.e(TAG, Log.getStackTraceString(e));
         }
@@ -71,13 +76,18 @@ public class ShizukuProvider extends rikka.shizuku.ShizukuProvider {
 
     private static void startInstrument(Context context) {
         try {
-            var binder = ServiceManager.getService(Context.ACTIVITY_SERVICE);
-            var am = IActivityManager.Stub.asInterface(new ShizukuBinderWrapper(binder));
+            var serviceManager = Class.forName("android.os.ServiceManager");
+            var binder = serviceManager.getMethod("getService", String.class).invoke(null, Context.ACTIVITY_SERVICE);
+            var stubClass = Class.forName("android.app.IActivityManager$Stub");
+            var am = stubClass.getMethod("asInterface", IBinder.class).invoke(null, new ShizukuBinderWrapper((IBinder) binder));
             var name = new ComponentName(context, PrivilegedProcess.class);
-            var flags = ActivityManager.INSTR_FLAG_DISABLE_HIDDEN_API_CHECKS;
-            flags |= ActivityManager.INSTR_FLAG_INSTRUMENT_SDK_SANDBOX;
-            var connection = new UiAutomationConnection();
-            am.startInstrumentation(name, null, flags, new Bundle(), null, connection, 0, null);
+            var flagsField = ActivityManager.class.getField("INSTR_FLAG_DISABLE_HIDDEN_API_CHECKS");
+            var flags = flagsField.getInt(null);
+            var flagsField2 = ActivityManager.class.getField("INSTR_FLAG_INSTRUMENT_SDK_SANDBOX");
+            flags |= flagsField2.getInt(null);
+            var uiAutomationConnection = Class.forName("android.app.UiAutomationConnection");
+            var connection = uiAutomationConnection.getConstructor().newInstance();
+            am.getClass().getMethod("startInstrumentation", ComponentName.class, String.class, int.class, Bundle.class, IBinder.class, Object.class, int.class, String.class).invoke(am, name, null, flags, new Bundle(), null, connection, 0, null);
         } catch (Exception e) {
             Log.e(TAG, Log.getStackTraceString(e));
         }

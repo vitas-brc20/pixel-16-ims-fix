@@ -41,4 +41,5 @@ dependencies {
     implementation(libs.shizuku.provider)
     implementation(libs.shizuku.api)
     implementation(libs.hiddenapibypass)
+    implementation("androidx.annotation:annotation:1.7.0")
 }

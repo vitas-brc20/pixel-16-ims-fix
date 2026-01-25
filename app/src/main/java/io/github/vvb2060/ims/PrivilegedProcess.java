@@ -2,7 +2,7 @@ package io.github.vvb2060.ims;
 
 import static rikka.shizuku.ShizukuProvider.METHOD_GET_BINDER;
 
-import android.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.annotation.SuppressLint;
 import android.app.Instrumentation;
 import android.content.Context;
@@ -69,7 +69,14 @@ public class PrivilegedProcess extends Instrumentation {
         var cm = context.getSystemService(CarrierConfigManager.class);
         var sm = context.getSystemService(SubscriptionManager.class);
         var values = getConfig();
-        for (var subId : sm.getActiveSubscriptionIdList()) {
+        int[] subIds;
+        try {
+            subIds = (int[]) SubscriptionManager.class.getMethod("getActiveSubscriptionIdList").invoke(sm);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to get subscription IDs", e);
+            return;
+        }
+        for (var subId : subIds) {
             var bundle = cm.getConfigForSubId(subId);
             if (bundle == null || bundle.getInt("vvb2060_config_version", 0) != BuildConfig.VERSION_CODE) {
                 values.putInt("vvb2060_config_version", BuildConfig.VERSION_CODE);
@@ -91,8 +98,11 @@ public class PrivilegedProcess extends Instrumentation {
         bundle.putBoolean(CarrierConfigManager.KEY_CARRIER_WFC_SUPPORTS_WIFI_ONLY_BOOL, true);
         bundle.putBoolean(CarrierConfigManager.KEY_EDITABLE_WFC_MODE_BOOL, true);
         bundle.putBoolean(CarrierConfigManager.KEY_EDITABLE_WFC_ROAMING_MODE_BOOL, true);
-        bundle.putBoolean(CarrierConfigManager.KEY_SHOW_WIFI_CALLING_ICON_IN_STATUS_BAR_BOOL, true);
-        bundle.putInt(CarrierConfigManager.KEY_WFC_SPN_FORMAT_IDX_INT, 6);
+        try {
+            bundle.putBoolean((String) CarrierConfigManager.class.getField("KEY_SHOW_WIFI_CALLING_ICON_IN_STATUS_BAR_BOOL").get(null), true);
+            bundle.putInt((String) CarrierConfigManager.class.getField("KEY_WFC_SPN_FORMAT_IDX_INT").get(null), 6);
+        } catch (Exception ignored) {
+        }
 
         bundle.putBoolean(CarrierConfigManager.KEY_EDITABLE_ENHANCED_4G_LTE_BOOL, true);
         bundle.putBoolean(CarrierConfigManager.KEY_HIDE_ENHANCED_4G_LTE_BOOL, false);
