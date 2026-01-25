@@ -1,5 +1,5 @@
 # IMS Configuration Tool
-
+[![Build APK](https://github.com/ShamirSecret/pixel-16-ims-fix/actions/workflows/build.yml/badge.svg)](https://github.com/ShamirSecret/pixel-16-ims-fix/actions/workflows/build.yml)
 Android application to enable IMS features (VoLTE, VoWiFi, VoNR) by modifying carrier configuration.
 
 ## Features
