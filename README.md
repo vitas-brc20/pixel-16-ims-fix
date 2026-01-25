@@ -2,8 +2,6 @@
 
 Android application to enable IMS features (VoLTE, VoWiFi, VoNR) by modifying carrier configuration.
 
-> **Note:** This project is based on the work of [vvb2060/Ims](https://github.com/vvb2060/Ims).
-
 ## Features
 
 - Enable VoLTE (Voice over LTE)
