@@ -34,8 +34,9 @@ public class ShizukuProvider extends rikka.shizuku.ShizukuProvider {
         } catch (Exception e) {
             sdkUid = Os.getuid();
         }
+        final int finalSdkUid = sdkUid;
         var callingUid = Binder.getCallingUid();
-        if (callingUid != sdkUid && callingUid != Process.SHELL_UID) {
+        if (callingUid != finalSdkUid && callingUid != Process.SHELL_UID) {
             return new Bundle();
         }
 
@@ -45,12 +46,12 @@ public class ShizukuProvider extends rikka.shizuku.ShizukuProvider {
                     startInstrument(getContext());
                 }
             });
-        } else if (METHOD_GET_BINDER.equals(method) && callingUid == sdkUid && extras != null) {
+        } else if (METHOD_GET_BINDER.equals(method) && callingUid == finalSdkUid && extras != null) {
             skip = true;
             Shizuku.addBinderReceivedListener(() -> {
                 var binder = extras.getBinder("binder");
                 if (binder != null && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                    startShellPermissionDelegate(binder, sdkUid);
+                    startShellPermissionDelegate(binder, finalSdkUid);
                 }
             });
         }
