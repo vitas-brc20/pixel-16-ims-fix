@@ -76,11 +76,49 @@ public class PrivilegedProcess extends Instrumentation {
             Log.e(TAG, "Failed to get subscription IDs", e);
             return;
         }
+        java.lang.reflect.Method overrideConfigWithPersist = null;
+        java.lang.reflect.Method overrideConfigNoPersist = null;
+        try {
+            overrideConfigWithPersist = CarrierConfigManager.class.getMethod(
+                    "overrideConfig", int.class, PersistableBundle.class, boolean.class);
+        } catch (NoSuchMethodException e) {
+            try {
+                overrideConfigWithPersist = CarrierConfigManager.class.getDeclaredMethod(
+                        "overrideConfig", int.class, PersistableBundle.class, boolean.class);
+                overrideConfigWithPersist.setAccessible(true);
+            } catch (NoSuchMethodException ignored) {
+            }
+        }
+        if (overrideConfigWithPersist == null) {
+            try {
+                overrideConfigNoPersist = CarrierConfigManager.class.getMethod(
+                        "overrideConfig", int.class, PersistableBundle.class);
+            } catch (NoSuchMethodException e) {
+                try {
+                    overrideConfigNoPersist = CarrierConfigManager.class.getDeclaredMethod(
+                            "overrideConfig", int.class, PersistableBundle.class);
+                    overrideConfigNoPersist.setAccessible(true);
+                } catch (NoSuchMethodException ignored) {
+                }
+            }
+        }
+        if (overrideConfigWithPersist == null && overrideConfigNoPersist == null) {
+            Log.e(TAG, "CarrierConfig overrideConfig method not found");
+            return;
+        }
         for (var subId : subIds) {
             var bundle = cm.getConfigForSubId(subId);
             if (bundle == null || bundle.getInt("vvb2060_config_version", 0) != BuildConfig.VERSION_CODE) {
                 values.putInt("vvb2060_config_version", BuildConfig.VERSION_CODE);
-                cm.overrideConfig(subId, values, persistent);
+                try {
+                    if (overrideConfigWithPersist != null) {
+                        overrideConfigWithPersist.invoke(cm, subId, values, persistent);
+                    } else {
+                        overrideConfigNoPersist.invoke(cm, subId, values);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to override carrier config", e);
+                }
             }
         }
     }
