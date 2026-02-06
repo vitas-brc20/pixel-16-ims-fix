@@ -128,7 +128,7 @@ public class PrivilegedProcess extends Instrumentation {
         bundle.putBoolean(CarrierConfigManager.KEY_CARRIER_VOLTE_AVAILABLE_BOOL, true);
         bundle.putBoolean(CarrierConfigManager.KEY_CARRIER_SUPPORTS_SS_OVER_UT_BOOL, true);
         bundle.putBoolean(CarrierConfigManager.KEY_CARRIER_VT_AVAILABLE_BOOL, true);
-        bundle.putString(CarrierConfigManager.KEY_IMS_USER_AGENT_STRING, "TA-VoLTE/3.0 GB17L/T1B1.220819.007 Device-Type/Android_Phone OMD");
+        bundle.putString("ims_user_agent_string", "TA-VoLTE/3.0 GB17L/T1B1.220819.007 Device-Type/Android_Phone OMD");
 
         bundle.putBoolean(CarrierConfigManager.KEY_CARRIER_CROSS_SIM_IMS_AVAILABLE_BOOL, true);
         bundle.putBoolean(CarrierConfigManager.KEY_ENABLE_CROSS_SIM_CALLING_ON_OPPORTUNISTIC_DATA_BOOL, true);
