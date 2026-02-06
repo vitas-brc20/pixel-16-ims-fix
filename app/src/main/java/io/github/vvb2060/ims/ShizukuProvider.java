@@ -88,7 +88,7 @@ public class ShizukuProvider extends rikka.shizuku.ShizukuProvider {
             flags |= flagsField2.getInt(null);
             var uiAutomationConnection = Class.forName("android.app.IUiAutomationConnection");
             Object connection = null;
-            am.getClass().getMethod("startInstrumentation", ComponentName.class, String.class, int.class, Bundle.class, IBinder.class, uiAutomationConnection, int.class, String.class).invoke(am, name, null, flags, new Bundle(), null, connection, 0, null);
+            am.getClass().getMethod("startInstrumentation", ComponentName.class, String.class, int.class, Bundle.class, IBinder.class, uiAutomationConnection, int.class, String.class, String.class).invoke(am, name, null, flags, new Bundle(), null, connection, 0, null, null);
         } catch (Exception e) {
             Log.e(TAG, Log.getStackTraceString(e));
         }
